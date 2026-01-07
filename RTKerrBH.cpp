@@ -7,7 +7,7 @@
 
 // ================= PHYSICS CONFIGURATION =================
 const double M = 1.0; // Mass
-const double a = 0.999; // Spin
+const double a = 0.999; // Spin (change this to see the BH shadow change shape) (HARD LIMIT IS 1!)
 const double R_HORIZON = M + std::sqrt(M*M - a*a);
 
 // ================= CAMERA CONFIGURATION ==================
@@ -19,7 +19,7 @@ const double THETA_CAM = 1.57079632679; // Equatorial plane
 
 // ================= INTEGRATOR SETTINGS ===================
 const double MAX_DIST = 2000.0;
-const int MAX_STEPS = 2000000; // Doubled to prevent "timeout" artifacts in chaotic regions
+const int MAX_STEPS = 2000000; 
 
 // ================= STATE ===================
 struct State {
@@ -164,7 +164,6 @@ int main() {
 
         for (int x = 0; x < W; x++) {
 
-            // Center pixel coordinate
             double alpha = ((double)x/W - 0.5) * FOV;
             double beta  = ((double)y/H - 0.5) * FOV * ((double)H/W);
             
@@ -202,7 +201,7 @@ int main() {
                 for (int i = 0; i < MAX_STEPS; i++) {
                     double dist_to_horizon = s.r - R_HORIZON;
                     
-                    // --- REFINED STEPPER ---
+                    // --- optimized stepper ---
                     // Use larger steps when far to save performance, 
                     // but extremely small steps near horizon for precision.
                     double h;
@@ -212,7 +211,6 @@ int main() {
                     } else if (dist_to_horizon > 10.0) {
                         h = 0.5;
                     } else {
-                        // Very near horizon/photon sphere
                         h = 0.01 * dist_to_horizon;
                     }
                     
@@ -282,4 +280,5 @@ int main() {
 
     std::cout << "Done.\n";
     return 0;
+
 }
