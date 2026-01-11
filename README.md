@@ -48,9 +48,11 @@ Where $\lambda$ is the affine parameter, $x^\mu$ represents coordinates $(t, r, 
 
 ### 3. The Event Horizon
 The Event Horizon is located at the larger root of $\Delta = 0$:
+
 $$
 R_{horizon} = M + \sqrt{M^2 - a^2}
 $$
+
 Any ray that crosses this threshold ($r < R_{horizon}$) is considered "captured" and renders as black.
 
 ---
