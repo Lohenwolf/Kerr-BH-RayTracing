@@ -5,29 +5,29 @@
 #include <omp.h>
 #include <algorithm>
 
-// ================= PHYSICS CONFIGURATION =================
+// ================= PARAMETERS ================
 const double M = 1.0; // Mass
 const double a = 0.999; // Spin (change this to see the BH shadow change shape) (HARD LIMIT IS 1!)
 const double R_HORIZON = M + std::sqrt(M*M - a*a);
 
-// ================= CAMERA CONFIGURATION ==================
+// ================= CAMERA CONFIGURATION ================
 const int W = 1200;
 const int H = 675;
 const double FOV = 22.0; 
 const double R_CAM = 1000.0;
 const double THETA_CAM = 1.57079632679; // Equatorial plane
 
-// ================= INTEGRATOR SETTINGS ===================
+// ================= RK4 INTEGRATION SETTINGS ==================
 const double MAX_DIST = 2000.0;
 const int MAX_STEPS = 2000000; 
 
-// ================= STATE ===================
+// =============== STATE ==================
 struct State {
     double r, theta, phi, t;
     double pr, ptheta, pphi, pt;
 };
 
-// ================= DERIVATIVES (Boyer-Lindquist) ==================
+// =============== DERIVATIVES (Boyer-Lindquist) =================
 void get_derivatives(const State& s, State& d) {
     double r = s.r;
     double th = s.theta;
@@ -118,7 +118,7 @@ void get_derivatives(const State& s, State& d) {
     d.pphi = 0.0;
 }
 
-// ================= RK4 ==================
+// ================ RK4 ==================
 void rk4_step(State& s, double h) {
     State k1, k2, k3, k4, t;
     
@@ -147,7 +147,7 @@ void rk4_step(State& s, double h) {
     s.ptheta += h*(k1.ptheta + 2*k2.ptheta + 2*k3.ptheta + k4.ptheta)/6.0;
 }
 
-// ================= MAIN ==================
+// ================= Main =================
 int main() {
     std::cout << "Starting Kerr Ray Tracer...\n";
     std::cout << "Resolution: " << W << " x " << H << "\n";
@@ -201,9 +201,7 @@ int main() {
                 for (int i = 0; i < MAX_STEPS; i++) {
                     double dist_to_horizon = s.r - R_HORIZON;
                     
-                    // --- optimized stepper ---
-                    // Use larger steps when far to save performance, 
-                    // but extremely small steps near horizon for precision.
+                    // Using larger steps when far to save performance but extremely small steps near the horizon for precision
                     double h;
                     
                     if (dist_to_horizon > 100.0) {
@@ -236,24 +234,22 @@ int main() {
                 }
 
                 if (escaped_status == 1) {
-                    // === SMOOTH SKY SHADER ===
-                    // Removing sharp transitions to prevent aliasing
+                    // ===== SMOOTH SKY SHADER =====
                     
-                    // Use sin^2 to keep it always positive and smooth
+                    // sin^2 to keep it always positive and smooth
                     double stripes_v = std::sin(30.0 * s.phi);
                     double stripes_h = std::sin(3.0 * s.theta);
                     
-                    // "Soft" grid pattern
+                    // soft grid pattern
                     double grid = 0.5 + 0.5 * (stripes_v * stripes_h);
                     
                     // Sharpen slightly using power, but keep smooth
                     sky_brightness = std::pow(grid, 0.8);
 
-                    // Doppler Beaming
+                    // Doppler effect
                     double beaming = 1.0 - 0.5 * (alpha / (FOV/2.0)); 
                     sky_brightness *= beaming;
 
-                    // Ambient floor
                     sky_brightness = 0.05 + 0.95 * sky_brightness;
                     
                     if (sky_brightness < 0.0) sky_brightness = 0.0;
